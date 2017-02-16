@@ -79,6 +79,18 @@ class SerialReceiverParser {
             // Swallow, try RocketCommandReply too before giving up
         }
         try {
+            IMUBaselineData telemetryData = objectMapper.readValue(dataPacketStr, IMUBaselineData.class);
+            return telemetryData;
+        } catch (IOException e) {
+            // Swallow, try RocketCommandReply too before giving up
+        }
+        try {
+            AltimeterBaselineData telemetryData = objectMapper.readValue(dataPacketStr, AltimeterBaselineData.class);
+            return telemetryData;
+        } catch (IOException e) {
+            // Swallow, try RocketCommandReply too before giving up
+        }
+        try {
             RocketCommandReply commandReply = objectMapper.readValue(dataPacketStr, RocketCommandReply.class);
             return commandReply;
         } catch (IOException e) {

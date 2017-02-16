@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by jasand on 15.01.2017.
@@ -18,11 +19,17 @@ public class FlightController {
     private RocketSerialComm rocketSerialComm;
     private AltimeterListener altimeterListener;
     private IMUListener imuListener;
+    private AltimeterBaselineListener altimeterBaselineListener;
+    private IMUBaselineListener imuBaselineListener;
     private CommandResponseListener commandResponseListener;
 
     public FlightController(String portName) {
         this.portName = portName;
         this.rocketSerialComm = new RocketSerialComm(portName, new RocketDataListenerImpl());
+    }
+
+    public static List<String> getAvailableCommPortNames() {
+        return RocketSerialComm.getAvailableCommPortNames();
     }
 
     public void setCommandResponseListener(CommandResponseListener commandResponseListener) {
@@ -35,6 +42,19 @@ public class FlightController {
 
     public void setAltimeterListener(AltimeterListener altimeterListener) {
         this.altimeterListener = altimeterListener;
+    }
+
+    public void setAltimeterBaselineListener(AltimeterBaselineListener altimeterBaselineListener) {
+        this.altimeterBaselineListener = altimeterBaselineListener;
+    }
+
+    public void setImuBaselineListener(IMUBaselineListener imuBaselineListener) {
+        this.imuBaselineListener = imuBaselineListener;
+    }
+
+    public boolean initialize() {
+        boolean result = rocketSerialComm.sendCommand(RocketCommand.INIT);
+        return result;
     }
 
     public boolean start() {
@@ -86,6 +106,18 @@ public class FlightController {
                 ((AltimeterData) rocketDataPacket).setLogTime(new Date());
                 if (altimeterListener != null) {
                     altimeterListener.receiveAltimeterData((AltimeterData) rocketDataPacket);
+                }
+                logFlightData(rocketDataPacket);
+            } else if (rocketDataPacket instanceof IMUBaselineData) {
+                ((IMUBaselineData) rocketDataPacket).setLogTime(new Date());
+                if (imuBaselineListener != null) {
+                    imuBaselineListener.receiveIMUBaselineData((IMUBaselineData) rocketDataPacket);
+                }
+                logFlightData(rocketDataPacket);
+            } else if (rocketDataPacket instanceof AltimeterBaselineData) {
+                ((AltimeterBaselineData) rocketDataPacket).setLogTime(new Date());
+                if (altimeterBaselineListener != null) {
+                    altimeterBaselineListener.receiveAltimeterBaselineData((AltimeterBaselineData) rocketDataPacket);
                 }
                 logFlightData(rocketDataPacket);
             }
