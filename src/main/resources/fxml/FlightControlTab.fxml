@@ -369,7 +369,7 @@
             <VBox prefHeight="150.0" BorderPane.alignment="CENTER">
                <children>
                   <Label maxWidth="1.7976931348623157E308" style="-fx-background-color: #222222;" text="Console:" textFill="#fafafa" />
-                  <TextArea fx:id="consoleText" maxWidth="1.7976931348623157E308" style="-fx-font-style: ;" />
+                  <TextArea fx:id="consoleText" maxWidth="1.7976931348623157E308" />
                </children>
             </VBox>
          </bottom>

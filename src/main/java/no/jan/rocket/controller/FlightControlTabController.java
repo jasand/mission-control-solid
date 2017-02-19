@@ -174,7 +174,7 @@ public class FlightControlTabController {
         return false;
     }
 
-    private String getLogdirName() {
+    public static String getLogdirName() {
         String logdir = System.getProperty("user.home");
         if (!logdir.endsWith("/")) {
             logdir = logdir + "/";
