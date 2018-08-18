@@ -76,6 +76,7 @@ public class FlightControlTabController {
     @FXML Label maxVertSpeed;
     private Double minSpeed = 0.0;
     private Double maxSpeed = 0.0;
+    private Double altitudeBaseline = 0.0;
 
     @FXML
     private LineChart<Long, Double> flightProfileChart;
@@ -214,7 +215,7 @@ public class FlightControlTabController {
         startButton.setDisable(false);
         stopButton.setDisable(true);
         closeButton.setDisable(false);
-        connectButton.setDisable(false);
+        connectButton.setDisable(true);
     }
 
     private void setStartedState() {
@@ -327,7 +328,7 @@ public class FlightControlTabController {
                             }
                             XYChart.Data<Long, Double> altitude = new XYChart.Data<Long, Double>(
                                     altimeterData.getTs() - timestampStart,
-                                    altimeterData.getAlt());
+                                    altimeterData.getAlt() - altitudeBaseline);
                             altitudeData.add(altitude);
                             if (prevAltimeterData != null) {
                                 long timediff = altimeterData.getTs() - prevAltimeterData.getTs();
@@ -364,6 +365,7 @@ public class FlightControlTabController {
         });
         fc.setAltimeterBaselineListener(altBase -> {
             try {
+                altitudeBaseline = altBase.getBaseAlt();
                 String response = new ObjectMapper().writeValueAsString(altBase);
                 log(response);
             } catch (JsonProcessingException e) {

@@ -24,6 +24,7 @@ import java.text.DecimalFormat;
 public class HistoryTabController {
 
     @FXML private Button chooseFlightButton;
+    @FXML private Label fileName;
     @FXML private ProgressIndicator progressIndicator;
 
     @FXML private Label maxAltLabel;
@@ -81,6 +82,7 @@ public class HistoryTabController {
                         minAccelX.setText(df.format(flightDataWrapper.getMinAccX()));
                         minAccelY.setText(df.format(flightDataWrapper.getMinAccY()));
                         minAccelZ.setText(df.format(flightDataWrapper.getMinAccZ()));
+                        fileName.setText(file.getName());
                         progressIndicator.setVisible(false);
                     }
                 });

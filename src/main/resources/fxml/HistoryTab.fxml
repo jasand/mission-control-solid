@@ -25,7 +25,7 @@
             <ToolBar maxWidth="1.7976931348623157E308" prefHeight="40.0" style="-fx-background-color: #262626;" BorderPane.alignment="CENTER">
               <items>
                 <Button fx:id="chooseFlightButton" mnemonicParsing="false" onAction="#onChooseFlightButton" text="Choose Flight" />
-                  <Label text="filename" textFill="YELLOW" />
+                  <Label fx:id="fileName" textFill="#f8a10a" />
                   <ProgressIndicator fx:id="progressIndicator" prefHeight="40.0" visible="false">
                      <effect>
                         <Blend />

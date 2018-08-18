@@ -19,7 +19,7 @@ public class FlightDataCalculator {
                 flightDataWrapper.setMaxAlt(altimeterData.getAlt() - altBaselineData.getBaseAlt());
             }
             if (prevAltData != null) {
-                Double speed = (altimeterData.getAlt() - prevAltData.getAlt()) / (altimeterData.getTs() - prevAltData.getTs()) / 1000;
+                Double speed = (altimeterData.getAlt() - prevAltData.getAlt()) / ((altimeterData.getTs() - prevAltData.getTs()) / 1000.0);
                 if (flightDataWrapper.getMaxSpeed() == null
                         || speed > flightDataWrapper.getMaxSpeed()) {
                     flightDataWrapper.setMaxSpeed(speed);
