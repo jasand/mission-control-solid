@@ -67,6 +67,28 @@ public class FlightDataWrapper {
         this.altimeterDataList = altimeterDataList;
     }
 
+    public long getStartTs() {
+        if (altimeterDataList.size()>0 && imuDataList.size()>0) {
+            return Math.min(altimeterDataList.get(0).getTs(), imuDataList.get(0).getTs());
+        }
+        return 0;
+    }
+
+    public long getStopTs() {
+        if (altimeterDataList.size()>0 && imuDataList.size()>0) {
+            return Math.max(altimeterDataList.get(altimeterDataList.size()-1).getTs(),
+                    imuDataList.get(imuDataList.size()-1).getTs());
+        }
+        return 0;
+    }
+
+    public Double getBaseAlt() {
+        if (altimeterBaselineData != null) {
+            return altimeterBaselineData.getBaseAlt();
+        }
+        return 0.0D;
+    }
+
     public List<IMUData> getImuDataList() {
         return imuDataList;
     }

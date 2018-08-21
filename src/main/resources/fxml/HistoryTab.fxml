@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
@@ -69,26 +68,40 @@
             </Pane>
          </bottom>
          <center>
-            <AnchorPane BorderPane.alignment="CENTER">
+            <HBox>
                <children>
-                  <VBox>
+                  <VBox HBox.hgrow="ALWAYS">
                      <children>
-                        <LineChart>
-                          <xAxis>
-                            <CategoryAxis side="BOTTOM" />
-                          </xAxis>
-                          <yAxis>
-                            <NumberAxis side="LEFT" />
-                          </yAxis>
+                        <LineChart fx:id="historyChart">
+                           <xAxis>
+                              <NumberAxis side="BOTTOM" fx:id="xAxisHist">
+                                 <label>Time (ms)</label>
+                              </NumberAxis>
+                           </xAxis>
+                           <yAxis>
+                              <NumberAxis fx:id="yAxisHist" side="LEFT">
+                                 <label>Altitude (m)</label>
+                              </NumberAxis>
+                           </yAxis>
+                           <VBox.margin>
+                              <Insets left="10.0" right="10.0" />
+                           </VBox.margin>
                         </LineChart>
-                        <Label text="Low value" />
-                        <Slider maxWidth="1.7976931348623157E308" />
-                        <Label text="High value" />
-                        <Slider maxWidth="1.7976931348623157E308" />
+                        <VBox>
+                           <children>
+                              <Label text="Low value" />
+                              <Slider fx:id="sliderLow" majorTickUnit="2500.0" max="10000.0" maxWidth="1.7976931348623157E308" onMouseReleased="#onSliderMouseReleased" showTickLabels="true" showTickMarks="true" />
+                              <Label text="High value" />
+                              <Slider fx:id="sliderHigh" majorTickUnit="2500.0" max="10000.0" maxWidth="1.7976931348623157E308" onMouseReleased="#onSliderMouseReleased" showTickLabels="true" showTickMarks="true" value="10000.0" />
+                           </children>
+                           <VBox.margin>
+                              <Insets left="20.0" right="20.0" />
+                           </VBox.margin>
+                        </VBox>
                      </children>
                   </VBox>
                </children>
-            </AnchorPane>
+            </HBox>
          </center>
          <right>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="150.0" style="-fx-background-color: #336699;" BorderPane.alignment="CENTER">

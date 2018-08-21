@@ -16,6 +16,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
 import no.jan.rocket.comm.AltimeterData;
 import no.jan.rocket.comm.IMUData;
+import no.jan.rocket.comm.RocketCommand;
 import no.jan.rocket.comm.RocketCommandReply;
 import no.jan.rocket.flight.AltimeterListener;
 import no.jan.rocket.flight.CommandResponseListener;
@@ -30,6 +31,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+
+import static no.jan.rocket.controller.history.FlightDataCalculator.calculateAzimuth;
+import static no.jan.rocket.controller.history.FlightDataCalculator.calculatePitch;
+import static no.jan.rocket.controller.history.FlightDataCalculator.calculateRoll;
 
 /**
  * Created by jasand on 10.02.2017.
@@ -124,24 +129,27 @@ public class FlightControlTabController {
 
     @FXML
     private void onHeartbeatButton(ActionEvent event) {
+        consoleLog("CMD: " + RocketCommand.HRTB.name());
         flightController.heartbeat();
     }
 
     @FXML
     private void onInitializeButton(ActionEvent event) {
-        System.out.println("onInitializeButton");
+        consoleLog("CMD: " + RocketCommand.INIT.name());
         progressIndicator.setVisible(true);
         flightController.initialize();
     }
 
     @FXML
     private void onStartButton(ActionEvent event) {
+        consoleLog("CMD: " + RocketCommand.STRT.name());
         progressIndicator.setVisible(true);
         flightController.start();
     }
 
     @FXML
     private void onStopButton(ActionEvent event) {
+        consoleLog("CMD: " + RocketCommand.STOP.name());
         progressIndicator.setVisible(true);
         flightController.stop();
     }
@@ -246,6 +254,10 @@ public class FlightControlTabController {
 
     private void log(String logEntry) {
         logfilePrintStream.println(logEntry);
+
+    }
+
+    private void consoleLog(String logEntry) {
         consoleText.appendText(logEntry + "\n");
     }
 
@@ -257,6 +269,7 @@ public class FlightControlTabController {
                 try {
                     String response = new ObjectMapper().writeValueAsString(rocketCommandReply);
                     log(response);
+                    consoleLog(response);
                     if (rocketCommandReply.getReplyFor().equals("STRT")) {
                         Platform.runLater( () -> {
                             setStartedState();
@@ -300,13 +313,10 @@ public class FlightControlTabController {
                             magnetY.setText(Double.toString(imuData.getMy()));
                             magnetZ.setText(Double.toString(imuData.getMz()));
 
-                            Double roll = Math.atan2(imuData.getAy(), imuData.getAz());
-                            Double pitch = Math.atan2(imuData.getAx(), Math.sqrt(imuData.getAy() * imuData.getAy() + imuData.getAz() * imuData.getAz()));
-                            roll *= 180.0 / Math.PI;
-                            pitch *= 180.0 / Math.PI;
                             DecimalFormat df = new DecimalFormat("##0.00");
-                            rollVal.setText(df.format(roll));
-                            pitchVal.setText(df.format(pitch));
+                            rollVal.setText(df.format(calculateRoll(imuData)));
+                            pitchVal.setText(df.format(calculatePitch(imuData)));
+                            azimuthVal.setText(df.format(calculateAzimuth(imuData)));
                         }
                     });
                     String response = new ObjectMapper().writeValueAsString(imuData);
@@ -359,6 +369,7 @@ public class FlightControlTabController {
             try {
                 String response = new ObjectMapper().writeValueAsString(imuBase);
                 log(response);
+                consoleLog(response);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -368,6 +379,7 @@ public class FlightControlTabController {
                 altitudeBaseline = altBase.getBaseAlt();
                 String response = new ObjectMapper().writeValueAsString(altBase);
                 log(response);
+                consoleLog(response);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

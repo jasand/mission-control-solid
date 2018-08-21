@@ -18,6 +18,12 @@ public class RocketSerialComm {
     private SerialReceiverParser serialReceiverParser;
     private RocketDataListener rocketDataListener;
 
+//    public final static int BAUDRATE = 9600;
+//    public final static int BAUDRATE = 19200;
+//    public final static int BAUDRATE = 38400;
+    public final static int BAUDRATE = 57600;
+//    public final static int BAUDRATE = 115200;
+
     public static List<String> getAvailableCommPortNames() {
         SerialPort ports[] = SerialPort.getCommPorts();
         List<String> portNames = new ArrayList<String>();
@@ -34,7 +40,7 @@ public class RocketSerialComm {
         super();
         this.rocketDataListener = rocketDataListener;
         comPort = SerialPort.getCommPort(portName);
-        comPort.setBaudRate(9600);
+        comPort.setBaudRate(BAUDRATE);
         serialReceiverParser = new SerialReceiverParser();
         boolean open = comPort.openPort();
 

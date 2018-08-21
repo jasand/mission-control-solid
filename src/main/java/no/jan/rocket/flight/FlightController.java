@@ -78,6 +78,7 @@ public class FlightController {
     public boolean abort() {
         boolean result = rocketSerialComm.sendCommand(RocketCommand.ABRT);
         //logFlightData(new RocketCommandLogEntry(RocketCommand.ABRT, LocalDateTime.now(), result));
+
         return result;
     }
 
@@ -101,13 +102,13 @@ public class FlightController {
                 if (imuListener != null) {
                     imuListener.receiveIMUData((IMUData) rocketDataPacket);
                 }
-                logFlightData(rocketDataPacket);
+//                logFlightData(rocketDataPacket);
             } else if (rocketDataPacket instanceof AltimeterData) {
                 ((AltimeterData) rocketDataPacket).setLogTime(new Date());
                 if (altimeterListener != null) {
                     altimeterListener.receiveAltimeterData((AltimeterData) rocketDataPacket);
                 }
-                logFlightData(rocketDataPacket);
+//                logFlightData(rocketDataPacket);
             } else if (rocketDataPacket instanceof IMUBaselineData) {
                 ((IMUBaselineData) rocketDataPacket).setLogTime(new Date());
                 if (imuBaselineListener != null) {

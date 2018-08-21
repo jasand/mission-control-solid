@@ -67,7 +67,7 @@
                               <Insets top="10.0" />
                            </VBox.margin>
                         </Label>
-                        <Label text="0.0" textFill="#ffc800">
+                        <Label fx:id="azimuthVal" text="0.0" textFill="#ffc800">
                            <VBox.margin>
                               <Insets left="15.0" />
                            </VBox.margin>
@@ -117,9 +117,9 @@
             </VBox>
          </left>
          <center>
-            <HBox BorderPane.alignment="CENTER">
+            <HBox maxWidth="1.7976931348623157E308" BorderPane.alignment="CENTER">
                <children>
-                  <VBox>
+                  <VBox HBox.hgrow="ALWAYS">
                      <children>
                         <Label text="Flight Profile:" />
                         <LineChart fx:id="flightProfileChart">

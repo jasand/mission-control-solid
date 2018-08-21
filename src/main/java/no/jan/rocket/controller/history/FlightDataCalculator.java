@@ -5,6 +5,8 @@ import no.jan.rocket.comm.AltimeterData;
 import no.jan.rocket.comm.IMUBaselineData;
 import no.jan.rocket.comm.IMUData;
 
+import java.text.DecimalFormat;
+
 /**
  * Created by jasand on 26.02.2017.
  */
@@ -49,5 +51,34 @@ public class FlightDataCalculator {
             }
         }
         return flightDataWrapper;
+    }
+
+    public static Double calculatePitch(IMUData imuData) {
+        Double pitch = Math.atan2(imuData.getAx(), Math.sqrt(imuData.getAy() * imuData.getAy() + imuData.getAz() * imuData.getAz()));
+        pitch *= 180.0 / Math.PI;
+        return pitch;
+    }
+
+    public static Double calculateRoll(IMUData imuData) {
+        Double roll = Math.atan2(imuData.getAy(), imuData.getAz());
+        roll *= 180.0 / Math.PI;
+        return roll;
+    }
+
+    public static Double calculateAzimuth(IMUData imuData) {
+        Double DECLINATION = 3.16;
+        Double azimuth;
+        if (imuData.getMy() == 0) {
+            azimuth = (imuData.getMx() < 0) ? Math.PI : 0;
+        } else {
+            azimuth = Math.atan2(imuData.getMx(), imuData.getMy());
+        }
+        azimuth -= DECLINATION * Math.PI / 180;
+
+        if (azimuth > Math.PI) azimuth -= (2 * Math.PI);
+        else if (azimuth < -Math.PI) azimuth += (2 * Math.PI);
+        else if (azimuth < 0) azimuth += 2 * Math.PI;
+        azimuth *= 180.0 / Math.PI;
+        return azimuth;
     }
 }
