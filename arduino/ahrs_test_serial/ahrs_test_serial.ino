@@ -16,7 +16,8 @@ LSM9DS1 imu;
 
 unsigned long lastSample = 0;
 //unsigned long sampleInterval = 20; // 20ms = 50Hz
-unsigned long sampleInterval = 100;
+//unsigned long sampleInterval = 100; // 10Hz
+unsigned long sampleInterval = 50; // 20Hz
 
 void setup() {
   Serial.begin(BAUDRATE);

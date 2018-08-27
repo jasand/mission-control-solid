@@ -16,10 +16,13 @@ LSM9DS1 imu;
 
 unsigned long lastSample = 0;
 //unsigned long sampleInterval = 20; // 20ms = 50Hz
-unsigned long sampleInterval = 100;
+//unsigned long sampleInterval = 100; // 10Hz
+unsigned long sampleInterval = 50; // 20Hz
+
+SoftwareSerial XBee(2, 3); // RX, TX
 
 void setup() {
-  Serial.begin(BAUDRATE);
+  XBee.begin(BAUDRATE);
 
   imu.settings.device.commInterface = IMU_MODE_I2C;
   imu.settings.device.mAddress = LSM9DS1_M;
@@ -32,8 +35,8 @@ void setup() {
   //imu.settings.accel.scale = 8;
 
   if (!imu.begin()) {
-    Serial.println("Failed to communicate with LSM9DS1.");
-    Serial.println("Double-check wiring.");
+    XBee.println("Failed to communicate with LSM9DS1.");
+    XBee.println("Double-check wiring.");
     while (1)
       ;
   }
@@ -162,25 +165,25 @@ void printIMU() {
   imu.readAccel();
   imu.readMag();
   
-  Serial.print("{\"ts\":");
-  Serial.print(millis());
-  Serial.print(",\"gx\":");
-  Serial.print(imu.calcGyro(imu.gx), 5);
-  Serial.print(",\"gy\":");
-  Serial.print(imu.calcGyro(imu.gy), 5);
-  Serial.print(",\"gz\":");
-  Serial.print(imu.calcGyro(imu.gz), 5);
-  Serial.print(",\"ax\":");
-  Serial.print(imu.calcAccel(imu.ax), 5);
-  Serial.print(",\"ay\":");
-  Serial.print(imu.calcAccel(imu.ay), 5);
-  Serial.print(",\"az\":");
-  Serial.print(imu.calcAccel(imu.az), 5);
-  Serial.print(",\"mx\":");
-  Serial.print(imu.calcMag(imu.mx), 5);
-  Serial.print(",\"my\":");
-  Serial.print(imu.calcMag(imu.my), 5);
-  Serial.print(",\"mz\":");
-  Serial.print(imu.calcMag(imu.mz), 5);
-  Serial.println("}");
+  XBee.print("{\"ts\":");
+  XBee.print(millis());
+  XBee.print(",\"gx\":");
+  XBee.print(imu.calcGyro(imu.gx), 5);
+  XBee.print(",\"gy\":");
+  XBee.print(imu.calcGyro(imu.gy), 5);
+  XBee.print(",\"gz\":");
+  XBee.print(imu.calcGyro(imu.gz), 5);
+  XBee.print(",\"ax\":");
+  XBee.print(imu.calcAccel(imu.ax), 5);
+  XBee.print(",\"ay\":");
+  XBee.print(imu.calcAccel(imu.ay), 5);
+  XBee.print(",\"az\":");
+  XBee.print(imu.calcAccel(imu.az), 5);
+  XBee.print(",\"mx\":");
+  XBee.print(imu.calcMag(imu.mx), 5);
+  XBee.print(",\"my\":");
+  XBee.print(imu.calcMag(imu.my), 5);
+  XBee.print(",\"mz\":");
+  XBee.print(imu.calcMag(imu.mz), 5);
+  XBee.println("}");
 }

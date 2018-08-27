@@ -55,7 +55,7 @@ public class AhrsTester extends Application {
     private double mouseOldY, mouseNewY;
 
     private FlightController flightController;
-    private MadgwickAHRS madgwickAHRS = new MadgwickAHRS(10, 0.2);
+    private MadgwickAHRS madgwickAHRS = new MadgwickAHRS(20, 0.2);
 
     @Override
     public void start(Stage stage) throws Exception {

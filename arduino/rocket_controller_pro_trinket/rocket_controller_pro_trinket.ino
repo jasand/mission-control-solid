@@ -11,8 +11,6 @@ LSM9DS1 imu;
 #define LSM9DS1_M  0x1E
 #define LSM9DS1_AG  0x6B
 
-#define DECLINATION 3.16
-
 #define IGNITION_PIN 5
 #define PWR_INDICATOR 6
 #define LED_INDICATOR 13 
