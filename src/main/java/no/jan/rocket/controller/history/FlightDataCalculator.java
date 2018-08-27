@@ -65,13 +65,30 @@ public class FlightDataCalculator {
         return roll;
     }
 
-    public static Double calculateAzimuth(IMUData imuData) {
+    public static Double calculateAzimuthOrig(IMUData imuData) {
         Double DECLINATION = 3.16;
         Double azimuth;
         if (imuData.getMy() == 0) {
             azimuth = (imuData.getMx() < 0) ? Math.PI : 0;
         } else {
             azimuth = Math.atan2(imuData.getMx(), imuData.getMy());
+        }
+        azimuth -= DECLINATION * Math.PI / 180;
+
+        if (azimuth > Math.PI) azimuth -= (2 * Math.PI);
+        else if (azimuth < -Math.PI) azimuth += (2 * Math.PI);
+        else if (azimuth < 0) azimuth += 2 * Math.PI;
+        azimuth *= 180.0 / Math.PI;
+        return azimuth;
+    }
+
+    public static Double calculateAzimuth(IMUData imuData) {
+        Double DECLINATION = 3.16;
+        Double azimuth;
+        if (-imuData.getMy() == 0) {
+            azimuth = (-imuData.getMx() < 0) ? Math.PI : 0;
+        } else {
+            azimuth = Math.atan2(-imuData.getMx(), -imuData.getMy());
         }
         azimuth -= DECLINATION * Math.PI / 180;
 
