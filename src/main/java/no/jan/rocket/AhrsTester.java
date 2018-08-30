@@ -9,15 +9,21 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.scene.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.MeshView;
+import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.MatrixType;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -53,6 +59,9 @@ public class AhrsTester extends Application {
 
     private double mouseOldX, mouseNewX;
     private double mouseOldY, mouseNewY;
+
+//    Box box = new Box(300, 200, 100);
+    MeshView box = createMeshView();
 
     private FlightController flightController;
     private MadgwickAHRS madgwickAHRS = new MadgwickAHRS(20, 0.2);
@@ -140,7 +149,7 @@ public class AhrsTester extends Application {
             public void handle(ActionEvent event) {
                 if (flightController != null)
                     flightController.close();
-                if ( logfilePrintStream != null) {
+                if (logfilePrintStream != null) {
                     logfilePrintStream.close();
                     logfilePrintStream = null;
                 }
@@ -201,10 +210,13 @@ public class AhrsTester extends Application {
     private SubScene buildSubScene3d() {
         // Create Camera
         camera = new PerspectiveCamera(true);
-        cameraRotateX = new Rotate(-20, Rotate.X_AXIS);
-        cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
+        camera.fieldOfViewProperty().setValue(60);
         cameraRotateZ = new Rotate(0, Rotate.Z_AXIS);
-        cameraTranslate = new Translate(0, 0, -40);
+        cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
+        cameraRotateX = new Rotate(40, Rotate.X_AXIS);
+
+
+        cameraTranslate = new Translate(0, 0, -60);
         camera.getTransforms().addAll(
                 cameraRotateX,
                 cameraRotateY,
@@ -225,14 +237,43 @@ public class AhrsTester extends Application {
     private Group buildGroup() {
         Group group = new Group();
         // Create Material
+        PhongMaterial phongMaterialRed = new PhongMaterial();
+        phongMaterialRed.setDiffuseColor(Color.DARKRED);
+        phongMaterialRed.setSpecularColor(Color.RED);
+        PhongMaterial phongMaterialBlue = new PhongMaterial();
+        phongMaterialBlue.setDiffuseColor(Color.DARKBLUE);
+        phongMaterialBlue.setSpecularColor(Color.BLUE);
+        PhongMaterial phongMaterialGreen = new PhongMaterial();
+        phongMaterialGreen.setDiffuseColor(Color.DARKGREEN);
+        phongMaterialGreen.setSpecularColor(Color.GREEN);
         PhongMaterial phongMaterial = new PhongMaterial();
-        phongMaterial.setDiffuseColor(Color.DARKRED);
-        phongMaterial.setSpecularColor(Color.RED);
+        phongMaterial.setDiffuseColor(Color.CORNSILK);
+        phongMaterial.setSpecularColor(Color.BEIGE);
 
-        // Create Box
-        Box box = new Box(8, 5, 2);
-        box.setMaterial(phongMaterial);
-        group.getChildren().add(box);
+        Box xAxis = new Box(40, 1, 1);
+        xAxis.translateXProperty().setValue(0);
+        xAxis.translateYProperty().setValue(-20);
+        xAxis.translateZProperty().setValue(0);
+        xAxis.setMaterial(phongMaterialRed);
+
+        Box yAxis = new Box(1, 40, 1);
+        yAxis.translateXProperty().setValue(-20);
+        yAxis.translateYProperty().setValue(0);
+        yAxis.translateZProperty().setValue(0);
+        yAxis.setMaterial(phongMaterialGreen);
+
+        Box zAxis = new Box(1, 1, 40);
+        zAxis.translateXProperty().setValue(-20);
+        zAxis.translateYProperty().setValue(-20);
+        zAxis.translateZProperty().setValue(-20);
+        zAxis.setMaterial(phongMaterialBlue);
+
+//        box.setMaterial(phongMaterial);
+
+
+//        box.getTransforms().add(new Rotate(45, new Point3D(1,1,1)));
+
+        group.getChildren().addAll(box, xAxis, yAxis, zAxis);
 
         return group;
     }
@@ -265,9 +306,9 @@ public class AhrsTester extends Application {
                             }
 
                             // Regner om fra dps til rps
-                            imuData.setGx((imuData.getGx() * Math.PI / 180) - gxBias);
-                            imuData.setGy((imuData.getGy() * Math.PI / 180) - gyBias);
-                            imuData.setGz((imuData.getGz() * Math.PI / 180) - gzBias);
+                            imuData.setGx((imuData.getGx() - gxBias) * Math.PI / 180);
+                            imuData.setGy((imuData.getGy() - gyBias) * Math.PI / 180);
+                            imuData.setGz((imuData.getGz() - gzBias) * Math.PI / 180);
 
                             // Justerer magnetmålinger
                             imuData.setMx(imuData.getMx() - 0.0927);
@@ -308,12 +349,33 @@ public class AhrsTester extends Application {
                             q2.setText(Double.toString(q[2]));
                             q3.setText(Double.toString(q[3]));
 
+                            // --- Quaternion directly ----
                             Quaternion quat = madgwickAHRS.getQuaternion();
-                            double angles[] = quat.getAngles();
+//                            double quatArray[] = madgwickAHRS.getQuatArray();
+//                            double angleRad = Math.acos(quatArray[0]) * 2;
+//                            double angle = angleRad * 360 / (2 * Math.PI) - 180;
+//                            double x = -quatArray[1] * 10;
+//                            double y = -quatArray[2] * 10;
+//                            double z = -quatArray[3] * 10;
+//                            System.out.println("Angle: " + angle + "   " + x + "  " + y + "  " + z);
+//                            box.getTransforms().setAll(new Rotate(angle, new Point3D(x, y, z)));
+//                            north.getTransforms().setAll(new Rotate(angle, -12.5, -5.5, 2.5, new Point3D(x, y, z)));
+//                            east.getTransforms().setAll(new Rotate(angle, -9.5, -8.5, 2.5, new Point3D(x, y, z)));
+//                            up.getTransforms().setAll(new Rotate(angle, -9.5, -5.5, 5.5, new Point3D(x, y, z)));
 
-                            cameraRotateX.setAngle(angles[0] * 360 / (2 * Math.PI)); // yaw
-                            cameraRotateY.setAngle(angles[1] * 360 / (2 * Math.PI)); // pitch
-                            cameraRotateZ.setAngle(angles[2] * 360 / (2 * Math.PI)); // roll
+
+                            // Angles from quaternion
+//                            double angles[] = quat.getAngles();
+//
+//                            cameraRotateX.setAngle(angles[0] * 360 / (2 * Math.PI)); // yaw
+//                            cameraRotateY.setAngle(angles[1] * 360 / (2 * Math.PI)); // pitch
+//                            cameraRotateZ.setAngle(angles[2] * 360 / (2 * Math.PI)); // roll
+
+
+                            // Rotation matrix from quaternion
+//                            double[] rotationMatrix = quat.get4x4RotationMadg();
+                            double[] rotationMatrix = quat.get4x4RotationEuclid();
+                            box.getTransforms().setAll(new Affine(rotationMatrix, MatrixType.MT_3D_4x4,0));
 
 
 //                            cameraRotateZ.setAngle(calculateAzimuth(imuData)); // yaw
@@ -382,6 +444,109 @@ public class AhrsTester extends Application {
 
         cameraRotateX.setAngle(cameraRotateX.getAngle() - mouseDeltaY);
         cameraRotateY.setAngle(cameraRotateY.getAngle() + mouseDeltaX);
+    }
+
+    public MeshView createMeshView() {
+        Image boxImage = new Image(getClass().getResourceAsStream("/images/texturemap.png"));
+        PhongMaterial material = new PhongMaterial();
+        material.setDiffuseMap(boxImage);
+//        material.setSpecularColor(Color.RED);
+//        material.setDiffuseColor(Color.DARKRED);
+
+//        float hw = 30/2f;
+//        float hh = 20/2f;
+//        float hd = 10/2f;
+//
+//        float points[] =
+//                {
+//                        hw, hh, hd,
+//                        hw, hh, -hd,
+//                        hw, -hh, hd,
+//                        hw, -hh, -hd,
+//                        -hw, hh, hd,
+//                        -hw, hh, -hd,
+//                        -hw, -hh, hd,
+//                        -hw, -hh, -hd,
+//                };
+
+        float points[] =
+                {
+                        -15, -10, -5,
+                        -15, 10, -5,
+                        15, -10, -5,
+                        15, 10, -5,
+                        -15, -10, 5,
+                        -15, 10, 5,
+                        15, -10, 5,
+                        15, 10, 5
+                };
+
+        float tex[] =
+                {
+                        // Top
+                        0, 0,
+                        0, 200f/512f,
+                        300f/1024f, 0,
+                        300f/1024f,200f/512f,
+
+                        // Bottom
+                        300f/1024f, 0,
+                        300f/1024f,200f/512f,
+                        600f/1024f, 0,
+                        600f/1024f,200f/512f,
+
+                        // Right
+                        0, 200f/512f,
+                        0, 300f/512f,
+                        300f/1024f, 200f/512f,
+                        300f/1024f,300f/512f,
+
+
+//                        300, 200
+//                        200, 100,
+//                        300, 100,
+//                        400, 100,
+//                        0, 200,
+//                        100, 200,
+//                        200, 200,
+//                        300, 200,
+//                        400, 200,
+//                        100, 300,
+//                        200, 300
+                };
+
+        int faces[] =
+                {
+                        // Top
+                        0, 0, 1, 1, 2, 2,
+                        3, 3, 2, 2, 1, 1,
+                        // Bottom
+                        4, 5, 6, 7, 5, 4,
+                        5, 4, 6, 7, 7, 6,
+                        // Right
+                        1, 8, 5, 9, 3, 10,
+                        5, 9, 7, 11, 3, 10
+//                        2, 5, 3, 4, 1, 9,
+//                        4, 7, 5, 8, 6, 2,
+//                        6, 2, 5, 8, 7, 3,
+//                        0, 13, 1, 9, 4, 12,
+//                        4, 12, 1, 9, 5, 8,
+//                        2, 1, 6, 0, 3, 4,
+//                        3, 4, 6, 0, 7, 3,
+//                        0, 10, 4, 11, 2, 5,
+//                        2, 5, 4, 11, 6, 6,
+//                        1, 9, 3, 4, 5, 8,
+//                        5, 8, 3, 4, 7, 3
+                };
+
+        TriangleMesh mesh = new TriangleMesh();
+        mesh.getPoints().addAll(points);
+        mesh.getTexCoords().addAll(tex);
+        mesh.getFaces().addAll(faces);
+
+        MeshView box = new MeshView(mesh);
+        box.setMaterial(material);
+        return box;
     }
 
     public static void main(String[] args) {

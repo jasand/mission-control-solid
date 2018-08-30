@@ -96,6 +96,9 @@ class SerialReceiverParser {
         } catch (IOException e) {
             // do not swallow this...
             throw new RuntimeException("Error parsing received data: " + dataPacketStr, e);
+//            LOG.error("Error parsing received data: " + dataPacketStr, e);
         }
+//        LOG.warn("Returning null...");
+//        return null;
     }
 }

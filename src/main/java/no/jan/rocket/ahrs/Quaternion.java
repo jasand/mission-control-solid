@@ -103,6 +103,64 @@ public class Quaternion {
         return new double[] {yaw, pitch, roll};
     }
 
+    public double[] get3x3RotationMadg() {
+        return new double[] {
+                2*qw*qw - 1 + 2*qx*qx,
+                2*(qx*qy + qw*qz),
+                2*(qx*qz - qw*qy),
+                2*(qx*qy - qw*qz),
+                2*qw*qw - 1 + 2*qy*qy,
+                2*(qy*qz + qw*qx),
+                2*(qx*qz + qw*qy),
+                2*(qy*qz - qw*qx),
+                2*qw*qw - 1 + 2*qz*qz
+        };
+    }
+
+    public double[] get4x4RotationMadg() {
+        return get4x4RotationFrom3x3(get3x3RotationMadg());
+    }
+
+    // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
+    public double[] get3x3RotationEuclid() {
+        return new double[] {
+                1 - 2*qy*qy - 2*qz*qz,
+                2*qx*qy - 2*qz*qw,
+                2*qx*qz + 2*qy*qw,
+                2*qx*qy + 2*qz*qw,
+                1 - 2*qx*qx - 2*qz*qz,
+                2*qy*qz - 2*qx*qw,
+                2*qx*qz - 2*qy*qw,
+                2*qy*qz + 2*qx*qw,
+                1 - 2*qx*qx - 2*qy*qy
+        };
+    }
+
+    public double[] get4x4RotationEuclid() {
+        return get4x4RotationFrom3x3(get3x3RotationEuclid());
+    }
+
+
+    public double[] get3x3RotationWiki() {
+        return new double[9];
+    }
+
+    public double[] get4x4RotationWiki() {
+        return get4x4RotationFrom3x3(get4x4RotationWiki());
+    }
+
+    private double[] get4x4RotationFrom3x3(double[] m) {
+        if (m.length == 9) {
+            return new double[]{
+                    m[0], m[1], m[2], 0,
+                    m[3], m[4], m[5], 0,
+                    m[6], m[7], m[8], 0,
+                    0, 0, 0, 1
+            };
+        }
+        return new double[16];
+    }
+
     // sample client for testing
     public static void main(String[] args) {
         Quaternion a = new Quaternion(3.0, 1.0, 0.0, 0.0);
