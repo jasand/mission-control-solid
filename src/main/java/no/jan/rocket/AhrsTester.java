@@ -14,6 +14,8 @@ import javafx.scene.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.effect.Light;
+import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -268,11 +270,6 @@ public class AhrsTester extends Application {
         zAxis.translateZProperty().setValue(-20);
         zAxis.setMaterial(phongMaterialBlue);
 
-//        box.setMaterial(phongMaterial);
-
-
-//        box.getTransforms().add(new Rotate(45, new Point3D(1,1,1)));
-
         group.getChildren().addAll(box, xAxis, yAxis, zAxis);
 
         return group;
@@ -326,8 +323,8 @@ public class AhrsTester extends Application {
                             mZ.setText(Double.toString(imuData.getMz()));
 
 
-                            madgwickAHRS.update(imuData.getGx().floatValue(),
-                                    imuData.getGy().floatValue(),
+                            madgwickAHRS.update(-imuData.getGx().floatValue(),
+                                    -imuData.getGy().floatValue(),
                                     imuData.getGz().floatValue(),
                                     imuData.getAx().floatValue(),
                                     imuData.getAy().floatValue(),
@@ -450,24 +447,11 @@ public class AhrsTester extends Application {
         Image boxImage = new Image(getClass().getResourceAsStream("/images/texturemap.png"));
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(boxImage);
-//        material.setSpecularColor(Color.RED);
-//        material.setDiffuseColor(Color.DARKRED);
+        material.setSelfIlluminationMap(boxImage);
+//        material.setSpecularColor(Color.WHITE);
+        material.setSpecularPower(0.2);
 
-//        float hw = 30/2f;
-//        float hh = 20/2f;
-//        float hd = 10/2f;
-//
-//        float points[] =
-//                {
-//                        hw, hh, hd,
-//                        hw, hh, -hd,
-//                        hw, -hh, hd,
-//                        hw, -hh, -hd,
-//                        -hw, hh, hd,
-//                        -hw, hh, -hd,
-//                        -hw, -hh, hd,
-//                        -hw, -hh, -hd,
-//                };
+//        material.setSpecularColor(Color.CORNSILK);
 
         float points[] =
                 {
@@ -483,36 +467,41 @@ public class AhrsTester extends Application {
 
         float tex[] =
                 {
-                        // Top
+                        // Top 0-3
                         0, 0,
                         0, 200f/512f,
                         300f/1024f, 0,
                         300f/1024f,200f/512f,
 
-                        // Bottom
+                        // Bottom 4-7
                         300f/1024f, 0,
                         300f/1024f,200f/512f,
                         600f/1024f, 0,
                         600f/1024f,200f/512f,
 
-                        // Right
+                        // Right 8-11
                         0, 200f/512f,
                         0, 300f/512f,
                         300f/1024f, 200f/512f,
                         300f/1024f,300f/512f,
 
+                        // Left 12-15
+                        0, 300f/512f,
+                        0, 400f/512f,
+                        300f/1024f, 300f/512f,
+                        300f/1024f,400f/512f,
 
-//                        300, 200
-//                        200, 100,
-//                        300, 100,
-//                        400, 100,
-//                        0, 200,
-//                        100, 200,
-//                        200, 200,
-//                        300, 200,
-//                        400, 200,
-//                        100, 300,
-//                        200, 300
+                        // Front 16-19
+                        300f/1024f, 200f/512f,
+                        300f/1024f, 400f/512f,
+                        400f/1024f, 200f/512f,
+                        400f/1024f, 400f/512f,
+
+                        // Back 20-23
+                        400f/1024f, 200f/512f,
+                        400f/1024f, 400f/512f,
+                        500f/1024f, 200f/512f,
+                        500f/1024f, 400f/512f,
                 };
 
         int faces[] =
@@ -525,18 +514,16 @@ public class AhrsTester extends Application {
                         5, 4, 6, 7, 7, 6,
                         // Right
                         1, 8, 5, 9, 3, 10,
-                        5, 9, 7, 11, 3, 10
-//                        2, 5, 3, 4, 1, 9,
-//                        4, 7, 5, 8, 6, 2,
-//                        6, 2, 5, 8, 7, 3,
-//                        0, 13, 1, 9, 4, 12,
-//                        4, 12, 1, 9, 5, 8,
-//                        2, 1, 6, 0, 3, 4,
-//                        3, 4, 6, 0, 7, 3,
-//                        0, 10, 4, 11, 2, 5,
-//                        2, 5, 4, 11, 6, 6,
-//                        1, 9, 3, 4, 5, 8,
-//                        5, 8, 3, 4, 7, 3
+                        5, 9, 7, 11, 3, 10,
+                        // Left
+                        0, 13, 6, 14, 4, 12,
+                        0, 13, 2, 15, 6, 14,
+                        // Front
+                        3, 17, 7, 19, 6, 18,
+                        3, 17, 6, 18, 2, 16,
+                        // Back
+                        1, 20, 0, 21, 4, 23,
+                        4, 23, 5, 22, 1, 20
                 };
 
         TriangleMesh mesh = new TriangleMesh();
