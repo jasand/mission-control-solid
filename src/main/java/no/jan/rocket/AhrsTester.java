@@ -304,10 +304,13 @@ public class AhrsTester extends Application {
                             imuData.setGy((imuData.getGy() - gyBias) * Math.PI / 180);
                             imuData.setGz((imuData.getGz() - gzBias) * Math.PI / 180);
 
+                            // Reverser Mx, siden den er motsatt fra IMU
+                            imuData.setMx(imuData.getMx() * -1.0);
+
                             // Justerer magnetmålinger
-                            imuData.setMx(imuData.getMx() - 0.0927);
-                            imuData.setMy(imuData.getMy() - 0.25067);
-                            imuData.setMz(imuData.getMz() + 0.23625);
+                            imuData.setMx(imuData.getMx() + 0.18);
+                            imuData.setMy(imuData.getMy() - 0.20);
+                            imuData.setMz(imuData.getMz() + 0.05);
 
                             aX.setText(Double.toString(imuData.getAx()));
                             aY.setText(Double.toString(imuData.getAy()));
@@ -319,23 +322,28 @@ public class AhrsTester extends Application {
                             mY.setText(Double.toString(imuData.getMy()));
                             mZ.setText(Double.toString(imuData.getMz()));
 
-
-                            madgwickAHRS.update(-imuData.getGx().floatValue(),
-                                    -imuData.getGy().floatValue(),
-                                    imuData.getGz().floatValue(),
-                                    imuData.getAx().floatValue(),
-                                    imuData.getAy().floatValue(),
+                            // Fungerer sånn passe. Ikke helt korrekt etter himmelretning.
+                            madgwickAHRS.update(
+                                    imuData.getGx().floatValue(),
+                                    imuData.getGy().floatValue(),
+                                    -imuData.getGz().floatValue(),
+                                    -imuData.getAx().floatValue(),
+                                    -imuData.getAy().floatValue(),
                                     imuData.getAz().floatValue(),
                                     imuData.getMx().floatValue(),
                                     imuData.getMy().floatValue(),
-                                    imuData.getMz().floatValue());
+                                    imuData.getMz().floatValue()
+                            );
 
-//                            madgwickAHRS.updateIMU(imuData.getGx().floatValue(),
+                            // Fungerer noenlunde som forventet, men med drift...
+//                            madgwickAHRS.updateIMU(
+//                                    imuData.getGx().floatValue(),
 //                                    imuData.getGy().floatValue(),
-//                                    imuData.getGz().floatValue(),
-//                                    imuData.getAx().floatValue(),
-//                                    imuData.getAy().floatValue(),
-//                                    imuData.getAz().floatValue());
+//                                    -imuData.getGz().floatValue(),
+//                                    -imuData.getAx().floatValue(),
+//                                    -imuData.getAy().floatValue(),
+//                                    imuData.getAz().floatValue()
+//                            );
 
                             double q[] = madgwickAHRS.getQuatArray();
                             q0.setText(Double.toString(q[0]));
