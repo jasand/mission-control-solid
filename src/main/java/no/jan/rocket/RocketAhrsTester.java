@@ -19,6 +19,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Affine;
@@ -39,7 +40,7 @@ import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class AhrsTester extends Application {
+public class RocketAhrsTester extends Application {
 
 
     private PerspectiveCamera camera;
@@ -222,7 +223,7 @@ public class AhrsTester extends Application {
         camera.fieldOfViewProperty().setValue(60);
         cameraRotateZ = new Rotate(0, Rotate.Z_AXIS);
         cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
-        cameraRotateX = new Rotate(40, Rotate.X_AXIS);
+        cameraRotateX = new Rotate(90, Rotate.X_AXIS);
 
 
         cameraTranslate = new Translate(0, 0, -60);
@@ -464,19 +465,51 @@ public class AhrsTester extends Application {
     public MeshView createMeshView() {
         Image boxImage = new Image(getClass().getResourceAsStream("/images/texturemap.png"));
         PhongMaterial material = new PhongMaterial();
-        material.setDiffuseMap(boxImage);
-        material.setSelfIlluminationMap(boxImage);
+//        material.setDiffuseMap(boxImage);
+//        material.setSelfIlluminationMap(boxImage);
+        material.setSpecularColor(Color.WHITE);
 
         float points[] =
                 {
-                        -15, -10, -5,
-                        -15, 10, -5,
-                        15, -10, -5,
-                        15, 10, -5,
-                        -15, -10, 5,
-                        -15, 10, 5,
-                        15, -10, 5,
-                        15, 10, 5
+                         0,  0, -25, // 0
+                        -3,  1,  -17,
+                        -1,  3,  -17,
+                         1,  3,  -17,
+                         3,  1,  -17,
+                         3, -1,  -17, // 5
+                         1, -3,  -17,
+                        -1, -3,  -17,
+                        -3, -1,  -17,
+
+                        -3,  1,  -9,
+                        -1,  3,  -9, // 10
+                        1,  3,  -9,
+                        3,  1,  -9,
+                        3, -1,  -9,
+                        1, -3,  -9,
+                        -1, -3,  -9, // 15
+                        -3, -1,  -9,
+
+                        // Seksjon med noe sort...
+                        -3,  1,  0,
+                        -1,  3,  0,
+                        1,  3,  0,
+                        3,  1,  0,   // 20
+                        3, -1,  0,
+                        1, -3,  0,
+                        -1, -3, 0,
+                        -3, -1, 0,
+
+                        // Bunnseksjon
+                        -3,  1,  25,  // 25
+                        -1,  3,  25,
+                        1,  3,  25,
+                        3,  1,  25,
+                        3, -1,  25,
+                        1, -3,  25,   // 30
+                        -1, -3, 25,
+                        -3, -1, 25
+
                 };
 
         float tex[] =
@@ -520,32 +553,99 @@ public class AhrsTester extends Application {
 
         int faces[] =
                 {
-                        // Top
-                        0, 0, 1, 1, 2, 2,
-                        3, 3, 2, 2, 1, 1,
-                        // Bottom
-                        4, 5, 6, 7, 5, 4,
-                        5, 4, 6, 7, 7, 6,
-                        // Right
-                        1, 8, 5, 9, 3, 10,
-                        5, 9, 7, 11, 3, 10,
-                        // Left
-                        0, 13, 6, 14, 4, 12,
-                        0, 13, 2, 15, 6, 14,
-                        // Front
-                        3, 17, 7, 19, 6, 18,
-                        3, 17, 6, 18, 2, 16,
-                        // Back
-                        1, 20, 0, 21, 4, 23,
-                        4, 23, 5, 22, 1, 20
+                        // Cone
+                        0, 0, 1, 0, 2, 0,
+                        0, 0, 2, 0, 3, 0,
+                        0, 0, 3, 0, 4, 0,
+                        0, 0, 4, 0, 5, 0,
+                        0, 0, 5, 0, 6, 0,
+                        0, 0, 6, 0, 7, 0,
+                        0, 0, 7, 0, 8, 0,
+                        0, 0, 8, 0, 1, 0,
+
+                        // Section 1
+                        1, 0,  9, 0, 10, 0,
+                        1, 0, 10, 0,  2, 0,
+
+                        2, 0,  10, 0, 11, 0,
+                        2, 0, 11, 0,  3, 0,
+
+                        3, 0, 11, 0, 12, 0,
+                        3, 0, 12, 0,  4, 0,
+
+                        4, 0, 12, 0, 13, 0,
+                        4, 0, 13, 0,  5, 0,
+
+                        5, 0, 13, 0, 14, 0,
+                        5, 0, 14, 0,  6, 0,
+
+                        6, 0, 14, 0, 15, 0,
+                        6, 0, 15, 0,  7, 0,
+
+                        7, 0, 15, 0, 16, 0,
+                        7, 0, 16, 0,  8, 0,
+
+                        8, 0, 16, 0, 9, 0,
+                        8, 0, 9, 0,  1, 0,
+
+                        // Section 2 - Med litt sort foran...
+                        9, 0, 17, 0, 18, 0,
+                        9, 0, 18, 0, 10, 0 ,
+
+                        10, 0, 18, 0, 19, 0,
+                        10, 0, 19, 0, 11, 0,
+
+                        11, 0, 19, 0, 20, 0,
+                        11, 0, 20, 0, 12, 0,
+
+                        12, 0, 20, 0, 21, 0,
+                        12, 0, 21, 0, 13, 0,
+
+                        13, 0, 21, 0, 22, 0,
+                        13, 0, 22, 0, 14, 0,
+
+                        14, 0, 22, 0, 23, 0,
+                        14, 0, 23, 0, 15, 0,
+
+                        15, 0, 23, 0, 24, 0,
+                        15, 0, 24, 0, 16, 0,
+
+                        16, 0, 24, 0, 17, 0,
+                        16, 0, 17, 0,  9, 0,
+
+                        // Section 3 - Bunnseksjon...
+                        17, 0, 25, 0, 26, 0,
+                        17, 0, 26, 0, 18, 0,
+
+                        18, 0, 26, 0, 27, 0,
+                        18, 0, 27, 0, 19, 0,
+
+                        19, 0, 27, 0, 28, 0,
+                        19, 0, 28, 0, 20, 0,
+
+                        20, 0, 28, 0, 29, 0,
+                        20, 0, 29, 0, 21, 0,
+
+                        21, 0, 29, 0, 30, 0,
+                        21, 0, 30, 0, 22, 0,
+
+                        22, 0, 30, 0, 31, 0,
+                        22, 0, 31, 0, 23, 0,
+
+                        23, 0, 31, 0, 32, 0,
+                        23, 0, 32, 0, 24, 0,
+
+                        24, 0, 32, 0, 25, 0,
+                        24, 0, 25, 0, 17, 0
                 };
 
         TriangleMesh mesh = new TriangleMesh();
         mesh.getPoints().addAll(points);
-        mesh.getTexCoords().addAll(tex);
+        mesh.getTexCoords().addAll(0,0);
         mesh.getFaces().addAll(faces);
 
         MeshView box = new MeshView(mesh);
+        box.setDrawMode(DrawMode.FILL);
         box.setMaterial(material);
         return box;
     }

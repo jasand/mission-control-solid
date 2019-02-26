@@ -97,9 +97,10 @@ public class Quaternion {
 
     // Wikipedia
     public double[] getAngles() {
-        double yaw = Math.atan2(2*qw*qx + 2*qy*qz, 1 - 2*qx*qx - 2*qy*qy);
+        double yaw = Math.atan2(2*qw*qz + 2*qx*qy, 1 - 2*qy*qy - 2*qz*qz);
         double pitch = Math.asin(2*qw*qy - 2*qz*qx);
-        double roll = Math.atan2(2*qw*qz + 2*qx*qy, 1 - 2*qy*qy - 2*qz*qz);
+        double roll = Math.atan2(2*qw*qx + 2*qy*qz, 1 - 2*qx*qx - 2*qy*qy);
+
         return new double[] {yaw, pitch, roll};
     }
 
