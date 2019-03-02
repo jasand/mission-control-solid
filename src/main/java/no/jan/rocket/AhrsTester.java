@@ -59,7 +59,7 @@ public class AhrsTester extends Application {
     private double mouseOldX, mouseNewX;
     private double mouseOldY, mouseNewY;
 
-//    Box box = new Box(300, 200, 100);
+//    Box rocketMeshView = new Box(300, 200, 100);
     MeshView box = createMeshView();
 
     private FlightController flightController;
@@ -370,7 +370,7 @@ public class AhrsTester extends Application {
 //                            double y = -quatArray[2] * 10;
 //                            double z = -quatArray[3] * 10;
 //                            System.out.println("Angle: " + angle + "   " + x + "  " + y + "  " + z);
-//                            box.getTransforms().setAll(new Rotate(angle, new Point3D(x, y, z)));
+//                            rocketMeshView.getTransforms().setAll(new Rotate(angle, new Point3D(x, y, z)));
 //                            north.getTransforms().setAll(new Rotate(angle, -12.5, -5.5, 2.5, new Point3D(x, y, z)));
 //                            east.getTransforms().setAll(new Rotate(angle, -9.5, -8.5, 2.5, new Point3D(x, y, z)));
 //                            up.getTransforms().setAll(new Rotate(angle, -9.5, -5.5, 5.5, new Point3D(x, y, z)));

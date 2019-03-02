@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.SubScene?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
@@ -11,10 +12,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="586.0" prefWidth="913.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.jan.rocket.controller.FlightControlTabController">
+<AnchorPane prefHeight="700.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="no.jan.rocket.controller.FlightControlTabController">
    <children>
       <BorderPane fx:id="flightControlTab" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
@@ -25,13 +27,8 @@
             </ToolBar>
          </top>
          <left>
-            <VBox prefWidth="150.0" style="-fx-background-color: #336699;" BorderPane.alignment="CENTER">
+            <VBox prefWidth="300.0" style="-fx-background-color: #336699;" BorderPane.alignment="CENTER">
                <children>
-                  <Label text="Calculated:" textFill="WHITE">
-                     <VBox.margin>
-                        <Insets left="10.0" top="10.0" />
-                     </VBox.margin>
-                  </Label>
                   <VBox maxWidth="1.7976931348623157E308">
                      <VBox.margin>
                         <Insets left="10.0" top="10.0" />
@@ -40,79 +37,158 @@
                         <Insets left="5.0" right="5.0" top="5.0" />
                      </padding>
                      <children>
-                        <Label text="Pitch (x):" textFill="WHITE" />
-                        <Label fx:id="pitchVal" text="0.0" textFill="#ffc800">
-                           <VBox.margin>
-                              <Insets left="15.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Rounded MT Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <Label text="Roll (y):" textFill="WHITE">
-                           <VBox.margin>
-                              <Insets top="10.0" />
-                           </VBox.margin>
-                        </Label>
-                        <Label fx:id="rollVal" text="0.0" textFill="#ffc800">
-                           <VBox.margin>
-                              <Insets left="15.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Rounded MT Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <Label text="Azimuth (z):" textFill="WHITE">
-                           <VBox.margin>
-                              <Insets top="10.0" />
-                           </VBox.margin>
-                        </Label>
-                        <Label fx:id="azimuthVal" text="0.0" textFill="#ffc800">
-                           <VBox.margin>
-                              <Insets left="15.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Rounded MT Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <Label text="Vert speed (m/s):" textFill="WHITE">
-                           <VBox.margin>
-                              <Insets top="15.0" />
-                           </VBox.margin>
-                        </Label>
-                        <Label fx:id="vertSpeed" text="0.0" textFill="#f20f0f">
-                           <VBox.margin>
-                              <Insets left="15.0" />
-                           </VBox.margin>
-                           <font>
-                              <Font name="Arial Rounded MT Bold" size="24.0" />
-                           </font>
-                        </Label>
-                        <HBox maxWidth="1.7976931348623157E308">
+                        <HBox>
                            <children>
-                              <Label text="Min:" textFill="WHITE" />
-                              <Label fx:id="minVertSpeed" text="0.0" textFill="YELLOW">
-                                 <HBox.margin>
-                                    <Insets left="7.0" />
-                                 </HBox.margin>
+                              <Label prefWidth="77.0" text="Pitch (x):" textFill="WHITE" />
+                              <Label fx:id="pitchVal" text="0.0" textFill="#ffc800">
                                  <font>
-                                    <Font name="System Bold" size="13.0" />
+                                    <Font name="Arial Rounded MT Bold" size="18.0" />
                                  </font>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
                               </Label>
                            </children>
                         </HBox>
-                        <HBox maxWidth="1.7976931348623157E308">
+                        <HBox>
                            <children>
-                              <Label text="Max:" textFill="WHITE" />
-                              <Label fx:id="maxVertSpeed" text="0.0" textFill="YELLOW">
+                              <Label prefWidth="77.0" text="Roll (y):" textFill="WHITE" />
+                              <Label fx:id="rollVal" text="0.0" textFill="#ffc800">
+                                 <font>
+                                    <Font name="Arial Rounded MT Bold" size="18.0" />
+                                 </font>
                                  <HBox.margin>
-                                    <Insets left="5.0" />
+                                    <Insets left="10.0" />
                                  </HBox.margin>
                               </Label>
+                           </children>
+                        </HBox>
+                        <HBox>
+                           <children>
+                              <Label prefWidth="77.0" text="Azimuth (z):" textFill="WHITE" />
+                              <Label fx:id="azimuthVal" text="0.0" textFill="#ffc800">
+                                 <font>
+                                    <Font name="Arial Rounded MT Bold" size="18.0" />
+                                 </font>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </Label>
+                           </children>
+                        </HBox>
+                        <HBox>
+                           <children>
+                              <Label text="Altimeter speed (m/s):" textFill="WHITE">
+                                 <padding>
+                                    <Insets top="5.0" />
+                                 </padding>
+                              </Label>
+                              <Label fx:id="vertSpeed" text="0.0" textFill="#f20f0f">
+                                 <font>
+                                    <Font name="Arial Rounded MT Bold" size="24.0" />
+                                 </font>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </Label>
+                           </children>
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <HBox>
+                           <children>
+                              <HBox maxWidth="1.7976931348623157E308">
+                                 <children>
+                                    <Label text="Min:" textFill="WHITE" />
+                                    <Label fx:id="minVertSpeed" text="0.0" textFill="YELLOW">
+                                       <HBox.margin>
+                                          <Insets left="7.0" />
+                                       </HBox.margin>
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
+                              <HBox maxWidth="1.7976931348623157E308">
+                                 <children>
+                                    <Label text="Max:" textFill="WHITE" />
+                                    <Label fx:id="maxVertSpeed" text="0.0" textFill="YELLOW">
+                                       <HBox.margin>
+                                          <Insets left="5.0" />
+                                       </HBox.margin>
+                                    </Label>
+                                 </children>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </HBox>
+                           </children>
+                           <VBox.margin>
+                              <Insets top="2.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <HBox layoutX="15.0" layoutY="86.0">
+                           <children>
+                              <Label text="IMU calc speed (m/s):" textFill="WHITE">
+                                 <padding>
+                                    <Insets top="5.0" />
+                                 </padding>
+                              </Label>
+                              <Label fx:id="vertSpeed1" text="0.0" textFill="#f20f0f">
+                                 <font>
+                                    <Font name="Arial Rounded MT Bold" size="24.0" />
+                                 </font>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </Label>
+                           </children>
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <HBox layoutX="15.0" layoutY="116.0">
+                           <children>
+                              <HBox maxWidth="1.7976931348623157E308">
+                                 <children>
+                                    <Label text="Min:" textFill="WHITE" />
+                                    <Label fx:id="minVertSpeed1" text="0.0" textFill="YELLOW">
+                                       <HBox.margin>
+                                          <Insets left="7.0" />
+                                       </HBox.margin>
+                                       <font>
+                                          <Font name="System Bold" size="13.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
+                              <HBox maxWidth="1.7976931348623157E308">
+                                 <children>
+                                    <Label text="Max:" textFill="WHITE" />
+                                    <Label fx:id="maxVertSpeed1" text="0.0" textFill="YELLOW">
+                                       <HBox.margin>
+                                          <Insets left="5.0" />
+                                       </HBox.margin>
+                                    </Label>
+                                 </children>
+                                 <HBox.margin>
+                                    <Insets left="10.0" />
+                                 </HBox.margin>
+                              </HBox>
                            </children>
                         </HBox>
                      </children>
                   </VBox>
+                  <SubScene fx:id="subScene3d" height="310.0" width="300.0" VBox.vgrow="ALWAYS">
+                    <root>
+                      <Region />
+                    </root>
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </SubScene>
                </children>
             </VBox>
          </left>
@@ -122,7 +198,7 @@
                   <VBox HBox.hgrow="ALWAYS">
                      <children>
                         <Label text="Flight Profile:" />
-                        <LineChart fx:id="flightProfileChart">
+                        <LineChart fx:id="flightProfileChart" VBox.vgrow="ALWAYS">
                           <xAxis>
                             <NumberAxis side="BOTTOM" fx:id="xAxis">
                                 <label>Time (ms)</label>
@@ -139,191 +215,12 @@
                         <Insets left="15.0" right="12.0" top="15.0" />
                      </padding>
                   </VBox>
-                  <VBox fillWidth="false" maxWidth="1.7976931348623157E308" style="-fx-background-color: cccccc;">
-                     <children>
-                        <Label text="Current Values:" />
-                        <VBox maxWidth="1.7976931348623157E308">
-                           <children>
-                              <Label maxWidth="1.7976931348623157E308" text="Accelerometer (g):" />
-                              <HBox maxWidth="1.7976931348623157E308" spacing="5.0">
-                                 <children>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0" HBox.hgrow="ALWAYS">
-                                       <children>
-                                          <Label text="x:" />
-                                          <Label fx:id="accX" maxWidth="1.7976931348623157E308" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="y:" />
-                                          <Label fx:id="accY" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="z:" />
-                                          <Label fx:id="accZ" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </HBox>
-                           </children>
-                           <VBox.margin>
-                              <Insets top="15.0" />
-                           </VBox.margin>
-                        </VBox>
-                        <VBox maxWidth="1.7976931348623157E308">
-                           <children>
-                              <Label text="Gyroscope (deg/s):">
-                                 <VBox.margin>
-                                    <Insets top="15.0" />
-                                 </VBox.margin>
-                              </Label>
-                              <HBox maxWidth="1.7976931348623157E308" spacing="5.0">
-                                 <children>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="x:" />
-                                          <Label fx:id="gyroX" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font name="System Bold" size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="y:" />
-                                          <Label fx:id="gyroY" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="z:" />
-                                          <Label fx:id="gyroZ" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </HBox>
-                           </children>
-                        </VBox>
-                        <VBox maxWidth="1.7976931348623157E308">
-                           <children>
-                              <Label maxWidth="1.7976931348623157E308" text="Magnetometer (Gauss):" />
-                              <HBox maxWidth="1.7976931348623157E308" spacing="5.0">
-                                 <children>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="x:" />
-                                          <Label fx:id="magnetX" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets />
-                                       </HBox.margin>
-                                       <padding>
-                                          <Insets left="5.0" />
-                                       </padding>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="y:" />
-                                          <Label fx:id="magnetY" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                    <HBox maxWidth="1.7976931348623157E308" spacing="3.0">
-                                       <children>
-                                          <Label text="z:" />
-                                          <Label fx:id="magnetZ" text="0.0" textFill="#0000fa">
-                                             <font>
-                                                <Font size="14.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                       <HBox.margin>
-                                          <Insets left="5.0" />
-                                       </HBox.margin>
-                                    </HBox>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </HBox>
-                           </children>
-                           <VBox.margin>
-                              <Insets top="15.0" />
-                           </VBox.margin>
-                        </VBox>
-                     </children>
-                     <padding>
-                        <Insets left="10.0" right="10.0" top="10.0" />
-                     </padding>
-                  </VBox>
                </children>
             </HBox>
          </center>
          <right>
             <VBox prefWidth="150.0" style="-fx-background-color: #336699;" BorderPane.alignment="CENTER">
                <children>
-                  <ProgressIndicator fx:id="progressIndicator" visible="false">
-                     <VBox.margin>
-                        <Insets top="10.0" />
-                     </VBox.margin>
-                  </ProgressIndicator>
                   <Label text="Controls:" textFill="WHITE">
                      <opaqueInsets>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -362,11 +259,16 @@
                         <Insets left="10.0" right="10.0" top="10.0" />
                      </VBox.margin>
                   </Button>
+                  <ProgressIndicator fx:id="progressIndicator" visible="false">
+                     <VBox.margin>
+                        <Insets top="10.0" />
+                     </VBox.margin>
+                  </ProgressIndicator>
                </children>
             </VBox>
          </right>
          <bottom>
-            <VBox prefHeight="150.0" BorderPane.alignment="CENTER">
+            <VBox prefHeight="120.0" BorderPane.alignment="CENTER">
                <children>
                   <Label maxWidth="1.7976931348623157E308" style="-fx-background-color: #222222;" text="Console:" textFill="#fafafa" />
                   <TextArea fx:id="consoleText" maxWidth="1.7976931348623157E308" />

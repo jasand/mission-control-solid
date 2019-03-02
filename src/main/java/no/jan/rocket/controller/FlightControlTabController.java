@@ -7,6 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -14,6 +18,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
+import javafx.scene.shape.MeshView;
+import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import no.jan.rocket.comm.AltimeterData;
 import no.jan.rocket.comm.IMUData;
 import no.jan.rocket.comm.RocketCommand;
@@ -22,6 +34,7 @@ import no.jan.rocket.flight.AltimeterListener;
 import no.jan.rocket.flight.CommandResponseListener;
 import no.jan.rocket.flight.FlightController;
 import no.jan.rocket.flight.IMUListener;
+import no.jan.rocket.graphics.GraphicsBuilder;
 import no.jan.rocket.modal.AlertBox;
 import no.jan.rocket.modal.CommPortSelectModal;
 import no.jan.rocket.modal.FlightNameModal;
@@ -90,12 +103,22 @@ public class FlightControlTabController {
     private TextArea consoleText;
 
     @FXML
+    private SubScene subScene3d;
+    private PerspectiveCamera camera;
+    private Rotate cameraRotateX, cameraRotateY, cameraRotateZ;
+    private Translate cameraTranslate;
+
+    MeshView rocket3d = GraphicsBuilder.createRocketMeshView();
+
+    @FXML
     private void initialize() {
 
         ObservableList<XYChart.Series<Long, Double>> lineChartData = FXCollections.observableArrayList(
                 altitudeSeries
         );
         flightProfileChart.setData(lineChartData);
+
+        initialize3d();
 
         System.out.println("Initialized...");
     }
@@ -385,5 +408,66 @@ public class FlightControlTabController {
             }
         });
         return fc;
+    }
+
+    private void initialize3d() {
+        camera = new PerspectiveCamera(true);
+        camera.fieldOfViewProperty().setValue(60);
+        cameraRotateZ = new Rotate(0, Rotate.Z_AXIS);
+        cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
+        cameraRotateX = new Rotate(90, Rotate.X_AXIS);
+
+
+        cameraTranslate = new Translate(0, 0, -60);
+        camera.getTransforms().addAll(
+                cameraRotateX,
+                cameraRotateY,
+                cameraRotateZ,
+                cameraTranslate);
+
+        Group group = buildGroup();
+        subScene3d.setFill(Color.rgb(33, 66, 99));
+        subScene3d.setCamera(camera);
+        subScene3d.setRoot(group);
+    }
+
+
+    private Group buildGroup() {
+        Group group = new Group();
+        // Create Material
+        PhongMaterial phongMaterialRed = new PhongMaterial();
+        phongMaterialRed.setDiffuseColor(Color.DARKRED);
+        phongMaterialRed.setSpecularColor(Color.RED);
+        PhongMaterial phongMaterialBlue = new PhongMaterial();
+        phongMaterialBlue.setDiffuseColor(Color.DARKBLUE);
+        phongMaterialBlue.setSpecularColor(Color.BLUE);
+        PhongMaterial phongMaterialGreen = new PhongMaterial();
+        phongMaterialGreen.setDiffuseColor(Color.DARKGREEN);
+        phongMaterialGreen.setSpecularColor(Color.GREEN);
+        PhongMaterial phongMaterial = new PhongMaterial();
+        phongMaterial.setDiffuseColor(Color.CORNSILK);
+        phongMaterial.setSpecularColor(Color.BEIGE);
+
+        Box xAxis = new Box(40, 1, 1);
+        xAxis.translateXProperty().setValue(0);
+        xAxis.translateYProperty().setValue(-20);
+        xAxis.translateZProperty().setValue(0);
+        xAxis.setMaterial(phongMaterialRed);
+
+        Box yAxis = new Box(1, 40, 1);
+        yAxis.translateXProperty().setValue(-20);
+        yAxis.translateYProperty().setValue(0);
+        yAxis.translateZProperty().setValue(0);
+        yAxis.setMaterial(phongMaterialGreen);
+
+        Box zAxis = new Box(1, 1, 40);
+        zAxis.translateXProperty().setValue(-20);
+        zAxis.translateYProperty().setValue(-20);
+        zAxis.translateZProperty().setValue(-20);
+        zAxis.setMaterial(phongMaterialBlue);
+
+        group.getChildren().addAll(xAxis, yAxis, zAxis, rocket3d);
+
+        return group;
     }
 }
