@@ -18,11 +18,12 @@ LSM9DS1 imu;
 
 #define PRINT_CALCULATED
 //#define PRINT_RAW
-#define PRINT_SPEED 500 // ms between prints
-static unsigned long lastPrint = 0; // Keep track of print time
+#define PRINT_SPEED_ALT 133 // ms between prints
+#define PRINT_SPEED_IMU 50 // ms between prints
+static unsigned long lastPrintAlt = 0; // Keep track of print time
+static unsigned long lastPrintImu = 0; // Keep track of print time
 
 char INIT_CMD[5] = "INIT";
-char INITIALIZED_MSG[5] = "INTD";
 char START_CMD[5] = "STRT";
 char STOP_CMD[5] = "STOP";
 char HEARTBEAT_CMD[5] = "HRTB";
@@ -31,28 +32,22 @@ int CMD_LEN = 4;
 
 static int STOPPED = 0;
 static int INITIALIZING = 1;
-static int INITIALIZED = 2;
-static int WAITING = 3;
-static int STARTED = 4;
+static int STARTED = 2;
 static int state = STOPPED;
-
-const int DISCARD_SAMPLES = 4;
-const int BASELINE_SAMPLES = 10;
-
-float baseAx, baseAy, baseAz, baseGx, baseGy, baseGz, baseMx, baseMy, baseMz, baseAlt, baseTemp;
-int initCounter = 0;
 
 SoftwareSerial XBee(2, 3); // RX, TX
 
 void setup() {
-  Serial.begin(9600);
-  XBee.begin(9600);
+  Serial.begin(57600);
+  //XBee.begin(57600);
 
   imu.settings.device.commInterface = IMU_MODE_I2C;
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
 
-  //imu.settings.accel.scale = 8;
+  setupGyro(); // Set up gyroscope parameters
+  setupAccel(); // Set up accelerometer parameters
+  setupMag(); // Set up magnetometer parameters
 
   if (!imu.begin()) {
     Serial.println("Failed to communicate with LSM9DS1.");
@@ -69,99 +64,110 @@ void setup() {
   //Configure the altimeter sensor
   myPressure.setModeAltimeter(); // Measure altitude above sea level in meters
   //myPressure.setModeBarometer(); // Measure pressure in Pascals from 20 to 110 kPa
-  myPressure.setOversampleRate(7); // Set Oversample to the recommended 128
+  myPressure.setOversampleRate(5); // Trade off... Sampler ca 7,5 Hz
   myPressure.enableEventFlags(); // Enable all three pressure and temp event flags 
-
+  //Serial.println("SETUP");
 }
 
 void loop() {
 
-  processAnyReceivedCommands();
+  processAnyReceivedCommandsSerial();
 
-  if (state == INITIALIZING) {
-    if ((lastPrint + PRINT_SPEED) < millis()) {
-      if (initCounter == 0) {
-        //resetBaseValues();
-      }
-      imu.readGyro();
-      imu.readAccel();
-      imu.readMag();
-      float altitude = myPressure.readAltitude();
-      float temperature = myPressure.readTemp();
-      if (initCounter >= DISCARD_SAMPLES) {
-        baseAx += imu.calcAccel(imu.ax);
-        baseAy += imu.calcAccel(imu.ay);
-        baseAz += imu.calcAccel(imu.az);
-        baseGx += imu.calcGyro(imu.gx);
-        baseGy += imu.calcGyro(imu.gy);
-        baseGz += imu.calcGyro(imu.gz);
-        baseMx += imu.calcMag(imu.mx);
-        baseMy += imu.calcMag(imu.my);
-        baseMz += imu.calcMag(imu.mz);
-        baseAlt += altitude;
-        baseTemp += temperature;
-      }
-      if (initCounter == DISCARD_SAMPLES + BASELINE_SAMPLES - 1 ) {
-        baseAx /= BASELINE_SAMPLES;
-        baseAy /= BASELINE_SAMPLES;
-        baseAz /= BASELINE_SAMPLES;
-        baseGx /= BASELINE_SAMPLES;
-        baseGy /= BASELINE_SAMPLES;
-        baseGz /= BASELINE_SAMPLES;
-        baseMx /= BASELINE_SAMPLES;
-        baseMy /= BASELINE_SAMPLES;
-        baseMz /= BASELINE_SAMPLES;
-        baseAlt /= BASELINE_SAMPLES;
-        baseTemp /= BASELINE_SAMPLES;
-        printBaseIMU();
-        printBaseAltitude();
-        state = INITIALIZED;
-      }
-      lastPrint = millis(); // Update lastPrint time
-      initCounter++;
+  if (state == STARTED || state == INITIALIZING) {
+    if ((lastPrintImu + PRINT_SPEED_IMU) <= millis()) {
+      lastPrintImu = millis();
+      printIMUSerial();
     }
-    
-  } else if (state == INITIALIZED) {
-    printCommandReply(INITIALIZED_MSG); // Signal ready for start...
-    state = WAITING;
-    
-  } else if (state == STARTED) {
-    if ((lastPrint + PRINT_SPEED) < millis()) {
-      lastPrint = millis();
-      //printGyro();  // Print "G: gx, gy, gz"
-      //printAccel(); // Print "A: ax, ay, az"
-      //printMag();   // Print "M: mx, my, mz"
-      printIMU();
-      printAltitude();
-      Serial.println();
-      //lastPrint = millis(); // Update lastPrint time
+    if ((lastPrintAlt + PRINT_SPEED_ALT) <= millis()) {
+      lastPrintAlt = millis();
+      printAltitudeSerial();
     }
   }
   
 }
 
-void printBaseIMU() {
-  XBee.print("{\"ts\":");
-  XBee.print(millis());
-  XBee.print(",\"baseGx\":");
-  XBee.print(baseGx, 2);
-  XBee.print(",\"baseGy\":");
-  XBee.print(baseGy, 2);
-  XBee.print(",\"baseGz\":");
-  XBee.print(baseGz, 2);
-  XBee.print(",\"baseAx\":");
-  XBee.print(baseAx, 2);
-  XBee.print(",\"baseAy\":");
-  XBee.print(baseAy, 2);
-  XBee.print(",\"baseAz\":");
-  XBee.print(baseAz, 2);
-  XBee.print(",\"baseMx\":");
-  XBee.print(baseMx, 2);
-  XBee.print(",\"baseMy\":");
-  XBee.print(baseMy, 2);
-  XBee.print(",\"baseMz\":");
-  XBee.print(baseMz, 2);
-  XBee.println("}");
+
+void printIMUSerial() {
+  long readStart = millis();
+  if ( imu.gyroAvailable() ){
+    imu.readGyro();
+  }
+  if ( imu.accelAvailable() ) {
+    imu.readAccel();
+  }
+  if ( imu.magAvailable() ) {
+    imu.readMag();
+  }
+  long readEnd = millis();
+  Serial.print("{\"ts\":");
+  Serial.print(millis());
+  Serial.print(",\"gx\":");
+  Serial.print(imu.calcGyro(imu.gx), 2);
+  Serial.print(",\"gy\":");
+  Serial.print(imu.calcGyro(imu.gy), 2);
+  Serial.print(",\"gz\":");
+  Serial.print(imu.calcGyro(imu.gz), 2);
+  Serial.print(",\"ax\":");
+  Serial.print(imu.calcAccel(imu.ax), 2);
+  Serial.print(",\"ay\":");
+  Serial.print(imu.calcAccel(imu.ay), 2);
+  Serial.print(",\"az\":");
+  Serial.print(imu.calcAccel(imu.az), 2);
+  Serial.print(",\"mx\":");
+  Serial.print(imu.calcMag(imu.mx), 2);
+  Serial.print(",\"my\":");
+  Serial.print(imu.calcMag(imu.my), 2);
+  Serial.print(",\"mz\":");
+  Serial.print(imu.calcMag(imu.mz), 2);
+  Serial.println("}");
+}
+
+void printAltitudeSerial() {
+  long readStart = millis();
+  float altitude = myPressure.readAltitude();
+  float temperature = myPressure.readTemp();
+  long readEnd = millis();
+  Serial.print("{\"ts\":");
+  Serial.print(millis());
+  Serial.print(",\"alt\":");
+  Serial.print(altitude, 2);
+  Serial.print(",\"temp\":");
+  Serial.print(temperature, 2);
+  Serial.println("}");
+}
+
+
+void processAnyReceivedCommandsSerial() {
+  while (Serial.available()) {
+    char rcvd = Serial.read();
+    int rcvBufLen = strlen(rcvCmdBuf);
+    rcvCmdBuf[rcvBufLen] = rcvd;
+    if (strlen(rcvCmdBuf) >= CMD_LEN) {
+      if (strcmp(INIT_CMD, rcvCmdBuf) == 0) {
+        state = INITIALIZING;
+        printCommandReply(INIT_CMD);
+        clearRcvCmdBuf();
+      } else if (strcmp(START_CMD, rcvCmdBuf) == 0) {
+        state = STARTED;
+        printCommandReply(START_CMD);
+        clearRcvCmdBuf();
+      } else if (strcmp(STOP_CMD, rcvCmdBuf) == 0) {
+        state = STOPPED;
+        printCommandReply(STOP_CMD);
+        clearRcvCmdBuf();
+      } else if (strcmp(HEARTBEAT_CMD, rcvCmdBuf) == 0) {
+        printCommandReply(HEARTBEAT_CMD);
+        clearRcvCmdBuf();
+      } else {
+        char discarded[2]; 
+        discarded[0]= rcvCmdBuf[0];
+        discarded[1] = '\0';
+        for (int i=0; i<CMD_LEN; i++) {
+          rcvCmdBuf[i] = rcvCmdBuf[i+1]; // Shift all one left
+        }
+      }
+    } // if
+  } // while
 }
 
 void printIMU() {
@@ -202,16 +208,6 @@ void printIMU() {
   XBee.println("}");
 }
 
-void printBaseAltitude() {
-  XBee.print("{\"ts\":");
-  XBee.print(millis());
-  XBee.print(",\"baseAlt\":");
-  XBee.print(baseAlt, 2);
-  XBee.print(",\"baseTemp\":");
-  XBee.print(baseTemp, 2);
-  XBee.println("}");
-}
-
 void printAltitude() {
   long readStart = millis();
   float altitude = myPressure.readAltitude();
@@ -235,7 +231,6 @@ void processAnyReceivedCommands() {
     rcvCmdBuf[rcvBufLen] = rcvd;
     if (strlen(rcvCmdBuf) >= CMD_LEN) {
       if (strcmp(INIT_CMD, rcvCmdBuf) == 0) {
-        initCounter = 0;
         state = INITIALIZING;
         printCommandReply(INIT_CMD);
         clearRcvCmdBuf();
@@ -288,5 +283,114 @@ boolean cmdEquals(char* str1, char* str2) {
   }
   return true;
 }
+
+
+void setupGyro()
+{
+  // [enabled] turns the gyro on or off.
+  imu.settings.gyro.enabled = true;  // Enable the gyro
+  // [scale] sets the full-scale range of the gyroscope.
+  // scale can be set to either 245, 500, or 2000
+  imu.settings.gyro.scale = 500; // Set scale to +/-245dps
+  // [sampleRate] sets the output data rate (ODR) of the gyro
+  // sampleRate can be set between 1-6
+  // 1 = 14.9    4 = 238
+  // 2 = 59.5    5 = 476
+  // 3 = 119     6 = 952
+  imu.settings.gyro.sampleRate = 2; // 59.5Hz ODR
+  // [bandwidth] can set the cutoff frequency of the gyro.
+  // Allowed values: 0-3. Actual value of cutoff frequency
+  // depends on the sample rate. (Datasheet section 7.12)
+  imu.settings.gyro.bandwidth = 0;
+  // [lowPowerEnable] turns low-power mode on or off.
+  imu.settings.gyro.lowPowerEnable = false; // LP mode off
+  // [HPFEnable] enables or disables the high-pass filter
+  imu.settings.gyro.HPFEnable = true; // HPF disabled
+  // [HPFCutoff] sets the HPF cutoff frequency (if enabled)
+  // Allowable values are 0-9. Value depends on ODR.
+  // (Datasheet section 7.14)
+  imu.settings.gyro.HPFCutoff = 1; // HPF cutoff = 4Hz
+  // [flipX], [flipY], and [flipZ] are booleans that can
+  // automatically switch the positive/negative orientation
+  // of the three gyro axes.
+  imu.settings.gyro.flipX = false; // Don't flip X
+  imu.settings.gyro.flipY = false; // Don't flip Y
+  imu.settings.gyro.flipZ = false; // Don't flip Z
+}
+
+void setupAccel()
+{
+  // [enabled] turns the acclerometer on or off.
+  imu.settings.accel.enabled = true; // Enable accelerometer
+  // [enableX], [enableY], and [enableZ] can turn on or off
+  // select axes of the acclerometer.
+  imu.settings.accel.enableX = true; // Enable X
+  imu.settings.accel.enableY = true; // Enable Y
+  imu.settings.accel.enableZ = true; // Enable Z
+  // [scale] sets the full-scale range of the accelerometer.
+  // accel scale can be 2, 4, 8, or 16
+  imu.settings.accel.scale = 8; // Set accel scale to +/-8g.
+  // [sampleRate] sets the output data rate (ODR) of the
+  // accelerometer. ONLY APPLICABLE WHEN THE GYROSCOPE IS
+  // DISABLED! Otherwise accel sample rate = gyro sample rate.
+  // accel sample rate can be 1-6
+  // 1 = 10 Hz    4 = 238 Hz
+  // 2 = 50 Hz    5 = 476 Hz
+  // 3 = 119 Hz   6 = 952 Hz
+  imu.settings.accel.sampleRate = 2; // Set accel to 10Hz.
+  // [bandwidth] sets the anti-aliasing filter bandwidth.
+  // Accel cutoff freqeuncy can be any value between -1 - 3. 
+  // -1 = bandwidth determined by sample rate
+  // 0 = 408 Hz   2 = 105 Hz
+  // 1 = 211 Hz   3 = 50 Hz
+  imu.settings.accel.bandwidth = 0; // BW = 408Hz
+  // [highResEnable] enables or disables high resolution 
+  // mode for the acclerometer.
+  imu.settings.accel.highResEnable = false; // Disable HR
+  // [highResBandwidth] sets the LP cutoff frequency of
+  // the accelerometer if it's in high-res mode.
+  // can be any value between 0-3
+  // LP cutoff is set to a factor of sample rate
+  // 0 = ODR/50    2 = ODR/9
+  // 1 = ODR/100   3 = ODR/400
+  imu.settings.accel.highResBandwidth = 0;  
+}
+
+void setupMag()
+{
+  // [enabled] turns the magnetometer on or off.
+  imu.settings.mag.enabled = true; // Enable magnetometer
+  // [scale] sets the full-scale range of the magnetometer
+  // mag scale can be 4, 8, 12, or 16
+  imu.settings.mag.scale = 4; // Set mag scale to +/-12 Gs
+  // [sampleRate] sets the output data rate (ODR) of the
+  // magnetometer.
+  // mag data rate can be 0-7:
+  // 0 = 0.625 Hz  4 = 10 Hz
+  // 1 = 1.25 Hz   5 = 20 Hz
+  // 2 = 2.5 Hz    6 = 40 Hz
+  // 3 = 5 Hz      7 = 80 Hz
+  imu.settings.mag.sampleRate = 5; // Set OD rate to 20Hz
+  // [tempCompensationEnable] enables or disables 
+  // temperature compensation of the magnetometer.
+  imu.settings.mag.tempCompensationEnable = false;
+  // [XYPerformance] sets the x and y-axis performance of the
+  // magnetometer to either:
+  // 0 = Low power mode      2 = high performance
+  // 1 = medium performance  3 = ultra-high performance
+  imu.settings.mag.XYPerformance = 3; // Ultra-high perform.
+  // [ZPerformance] does the same thing, but only for the z
+  imu.settings.mag.ZPerformance = 3; // Ultra-high perform.
+  // [lowPowerEnable] enables or disables low power mode in
+  // the magnetometer.
+  imu.settings.mag.lowPowerEnable = false;
+  // [operatingMode] sets the operating mode of the
+  // magnetometer. operatingMode can be 0-2:
+  // 0 = continuous conversion
+  // 1 = single-conversion
+  // 2 = power down
+  imu.settings.mag.operatingMode = 0; // Continuous mode
+}
+
 
 

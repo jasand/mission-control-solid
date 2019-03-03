@@ -24,8 +24,12 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.MatrixType;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
+import no.jan.rocket.ahrs.MadgwickAHRS;
+import no.jan.rocket.ahrs.Quaternion;
 import no.jan.rocket.comm.AltimeterData;
 import no.jan.rocket.comm.IMUData;
 import no.jan.rocket.comm.RocketCommand;
@@ -56,6 +60,13 @@ public class FlightControlTabController {
 
     private FlightController flightController;
     PrintStream logfilePrintStream;
+    private long imuCounter = 0;
+    private boolean initializing = false;
+    private boolean started = false;
+    private long imuSamplesToInitialize = 100; // assuming 20 Hz, 5 sec
+    private Double altitudeBaseline = 0.0;
+    private long altCounter = 0;
+
 
     Long timestampStart;
     @FXML private NumberAxis xAxis;
@@ -85,6 +96,9 @@ public class FlightControlTabController {
     @FXML Label magnetY;
     @FXML Label magnetZ;
 
+    @FXML Label baseAlt;
+    @FXML Label temp;
+
     // Calculated
     @FXML Label pitchVal;
     @FXML Label rollVal;
@@ -92,9 +106,12 @@ public class FlightControlTabController {
     @FXML Label vertSpeed;
     @FXML Label minVertSpeed;
     @FXML Label maxVertSpeed;
+    @FXML Label calcVertSpeed;  // Calculated from IMU
+    @FXML Label minCalcVertSpeed;
+    @FXML Label maxCalcVertSpeed;
     private Double minSpeed = 0.0;
     private Double maxSpeed = 0.0;
-    private Double altitudeBaseline = 0.0;
+
 
     @FXML
     private LineChart<Long, Double> flightProfileChart;
@@ -109,6 +126,10 @@ public class FlightControlTabController {
     private Translate cameraTranslate;
 
     MeshView rocket3d = GraphicsBuilder.createRocketMeshView();
+    private MadgwickAHRS madgwickAHRS = new MadgwickAHRS(20, 0.2);
+    double gxBias = 0.0;
+    double gyBias = 0.0;
+    double gzBias = 0.0;
 
     @FXML
     private void initialize() {
@@ -238,18 +259,25 @@ public class FlightControlTabController {
         stopButton.setDisable(true);
         closeButton.setDisable(false);
         connectButton.setDisable(true);
+        initializing = true;
     }
 
     private void setInitializedState() {
+        // Calculate altitude baseline here...
+        altitudeBaseline = altitudeBaseline / altCounter;
+        Platform.runLater(() -> baseAlt.setText(String.format("%.1f", altitudeBaseline)));
+
         heartbeatButton.setDisable(true);
         initializeButton.setDisable(true);
         startButton.setDisable(false);
         stopButton.setDisable(true);
         closeButton.setDisable(false);
         connectButton.setDisable(true);
+        initializing = false;
     }
 
     private void setStartedState() {
+        started = true;
         heartbeatButton.setDisable(false);
         startButton.setDisable(true);
         stopButton.setDisable(false);
@@ -258,6 +286,7 @@ public class FlightControlTabController {
     }
 
     private void setStoppedState() {
+        started = false;
         heartbeatButton.setDisable(false);
         startButton.setDisable(true);
         stopButton.setDisable(true);
@@ -326,9 +355,10 @@ public class FlightControlTabController {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            accX.setText(Double.toString(imuData.getAx()));
-                            accY.setText(Double.toString(imuData.getAy()));
-                            accZ.setText(Double.toString(imuData.getAz()));
+
+                            accX.setText(String.format("%5.2f", imuData.getAx()));
+                            accY.setText(String.format("%5.2f", imuData.getAy()));
+                            accZ.setText(String.format("%5.2f", imuData.getAz()));
                             gyroX.setText(Double.toString(imuData.getGx()));
                             gyroY.setText(Double.toString(imuData.getGy()));
                             gyroZ.setText(Double.toString(imuData.getGz()));
@@ -336,10 +366,44 @@ public class FlightControlTabController {
                             magnetY.setText(Double.toString(imuData.getMy()));
                             magnetZ.setText(Double.toString(imuData.getMz()));
 
-                            DecimalFormat df = new DecimalFormat("##0.00");
-                            rollVal.setText(df.format(calculateRoll(imuData)));
-                            pitchVal.setText(df.format(calculatePitch(imuData)));
-                            azimuthVal.setText(df.format(calculateAzimuth(imuData)));
+                            // Regner om fra dps til rps
+                            imuData.setGx((imuData.getGx() - gxBias) * Math.PI / 180);
+                            imuData.setGy((imuData.getGy() - gyBias) * Math.PI / 180);
+                            imuData.setGz((imuData.getGz() - gzBias) * Math.PI / 180);
+
+                            // Reverser Mx, siden den er motsatt fra IMU
+                            imuData.setMx(imuData.getMx() * -1.0);
+
+                            // Justerer magnetmålinger
+                            imuData.setMx(imuData.getMx() + 0.18);
+                            imuData.setMy(imuData.getMy() - 0.20);
+                            imuData.setMz(imuData.getMz() + 0.05);
+
+                            // Fungerer sånn passe. Ikke helt korrekt etter himmelretning.
+                            madgwickAHRS.update(
+                                    imuData.getGx().floatValue(),
+                                    imuData.getGy().floatValue(),
+                                    -imuData.getGz().floatValue(),
+                                    -imuData.getAx().floatValue(),
+                                    -imuData.getAy().floatValue(),
+                                    imuData.getAz().floatValue(),
+                                    imuData.getMx().floatValue(),
+                                    imuData.getMy().floatValue(),
+                                    imuData.getMz().floatValue()
+                            );
+
+                            // --- Quaternion directly ----
+                            Quaternion quat = madgwickAHRS.getQuaternion();
+
+                            // Angles from quaternion
+                            double angles[] = quat.getAngles();
+                            azimuthVal.setText(String.format("%.2f", angles[0] * 180 / Math.PI));
+                            pitchVal.setText(String.format("%.2f", angles[1] * 180 / (Math.PI)));
+                            rollVal.setText(String.format("%.2f", angles[2] * 180 / (Math.PI)));
+
+                            double[] rotationMatrix = quat.get4x4RotationEuclid();
+                            rocket3d.getTransforms().setAll(new Affine(rotationMatrix, MatrixType.MT_3D_4x4,0));
+
                         }
                     });
                     String response = new ObjectMapper().writeValueAsString(imuData);
@@ -347,64 +411,57 @@ public class FlightControlTabController {
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
+                if (initializing) {
+                    imuCounter++;
+                    if (imuCounter >= imuSamplesToInitialize) {
+                        setInitializedState();
+                    }
+                }
             }
         });
         fc.setAltimeterListener(new AltimeterListener() {
             @Override
             public void receiveAltimeterData( final AltimeterData altimeterData) {
-                try {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (timestampStart == null) {
-                                timestampStart = altimeterData.getTs();
-                            }
-                            XYChart.Data<Long, Double> altitude = new XYChart.Data<Long, Double>(
-                                    altimeterData.getTs() - timestampStart,
-                                    altimeterData.getAlt() - altitudeBaseline);
-                            altitudeData.add(altitude);
-                            if (prevAltimeterData != null) {
-                                long timediff = altimeterData.getTs() - prevAltimeterData.getTs();
-                                Double altDiff = altimeterData.getAlt() - prevAltimeterData.getAlt();
-                                Double verticalSpeed = altDiff / ((double) timediff / 1000.0d);
-                                DecimalFormat df = new DecimalFormat("##0.00");
-                                vertSpeed.setText(df.format(verticalSpeed));
-                                if (verticalSpeed > maxSpeed) {
-                                    maxSpeed = verticalSpeed;
-                                    maxVertSpeed.setText(df.format(maxSpeed));
-                                } else if (verticalSpeed < minSpeed) {
-                                    minSpeed = verticalSpeed;
-                                    minVertSpeed.setText(df.format(minSpeed));
+                if (initializing) {
+                    altitudeBaseline += altimeterData.getAlt();
+                    altCounter++;
+                } else if (started) {
+                    try {
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (timestampStart == null) {
+                                    timestampStart = altimeterData.getTs();
                                 }
+                                XYChart.Data<Long, Double> altitude = new XYChart.Data<Long, Double>(
+                                        altimeterData.getTs() - timestampStart,
+                                        altimeterData.getAlt() - altitudeBaseline);
+                                altitudeData.add(altitude);
+                                if (prevAltimeterData != null) {
+                                    long timediff = altimeterData.getTs() - prevAltimeterData.getTs();
+                                    Double altDiff = altimeterData.getAlt() - prevAltimeterData.getAlt();
+                                    Double verticalSpeed = altDiff / ((double) timediff / 1000.0d);
+                                    DecimalFormat df = new DecimalFormat("##0.00");
+                                    vertSpeed.setText(df.format(verticalSpeed));
+                                    if (verticalSpeed > maxSpeed) {
+                                        maxSpeed = verticalSpeed;
+                                        maxVertSpeed.setText(df.format(maxSpeed));
+                                    } else if (verticalSpeed < minSpeed) {
+                                        minSpeed = verticalSpeed;
+                                        minVertSpeed.setText(df.format(minSpeed));
+                                    }
+                                }
+                                prevAltimeterData = altimeterData;
+                                temp.setText(String.format("%.1f", altimeterData.getTemp()));
                             }
-                            prevAltimeterData = altimeterData;
-                        }
-                    });
+                        });
 
-                    String response = new ObjectMapper().writeValueAsString(altimeterData);
-                    log(response);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                        String response = new ObjectMapper().writeValueAsString(altimeterData);
+                        log(response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        });
-        fc.setImuBaselineListener(imuBase -> {
-            try {
-                String response = new ObjectMapper().writeValueAsString(imuBase);
-                log(response);
-                consoleLog(response);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        });
-        fc.setAltimeterBaselineListener(altBase -> {
-            try {
-                altitudeBaseline = altBase.getBaseAlt();
-                String response = new ObjectMapper().writeValueAsString(altBase);
-                log(response);
-                consoleLog(response);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
             }
         });
         return fc;
